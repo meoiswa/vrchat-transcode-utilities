@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 # Constants for cubic function coefficients
-A = 0.000114092 
+A = 0.000114092
 B = - 0.0181481
 C = 0.98977
 D = - 0.010483
@@ -22,10 +22,10 @@ def map_font_size(size: int) -> int:
 
 def process_subtitles(subtitle_file: Path) -> None:
     """Process subtitle file to map font sizes."""
-    with subtitle_file.open("r") as file:
+    with subtitle_file.open("r", encoding="utf8") as file:
         lines = file.readlines()
 
-    with subtitle_file.open("w") as file:
+    with subtitle_file.open("w", encoding="utf8") as file:
         for line in lines:
             if 'face' in line:
                 size = int(line.split('size="')[1].split('"')[0])
@@ -92,15 +92,21 @@ def main():
         forward_slash_temp_path = str(temp_subtitle_file).replace("\\", "/").replace(":", "\\\\:")
 
         ffmpeg_cmd = ["ffmpeg", "-i", str(input_file), "-map", "0:0", "-map", "0:1", "-pix_fmt", "yuv420p", "-crf", "23", "-vf", f"subtitles={forward_slash_temp_path}", "-c:a", "ac3", str(output_file)]
-        
+
         if args.use_gpu:
             ffmpeg_cmd.extend(["-c:v", "h264_nvenc", "-preset", "p7", "-tune", "hq"])
         else:
             ffmpeg_cmd.extend(["-c:v", "libx264", "-preset", "veryslow", "-tune", "animation"])
 
-        subprocess.run(ffmpeg_cmd)
+        process = None
+        try:
+            process = subprocess.Popen(ffmpeg_cmd)
+            process.wait()
+            print("Processing completed successfully.")
+        except KeyboardInterrupt:
+            print("Aborting...")
+            process.kill()
 
-        print("Processing completed successfully.")
 
     finally:
         if args.subtitle_track is not None and temp_subtitle_file.is_file():
