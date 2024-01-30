@@ -7,10 +7,10 @@ import tempfile
 from pathlib import Path
 
 # Constants for cubic function coefficients
-A = 0.000185632
-B = -0.0374664
-C = 2.7183
-D = -51.2774
+A = 0.000114092 
+B = - 0.0181481
+C = 0.98977
+D = - 0.010483
 
 def is_ffmpeg_installed() -> bool:
     """Check if ffmpeg is installed."""
