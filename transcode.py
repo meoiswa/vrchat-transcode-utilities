@@ -89,8 +89,10 @@ def main():
 
         output_file = input_file.with_name(f"{input_file.stem}_processed.mp4")
 
-        ffmpeg_cmd = ["ffmpeg", "-i", str(input_file), "-map", "0:0", "-map", "0:1", "-pix_fmt", "yuv420p", "-crf", "23", "-vf", f"subtitles={str(temp_subtitle_file)}", "-c:a", "ac3", str(output_file)]
+        forward_slash_temp_path = str(temp_subtitle_file).replace("\\", "/").replace(":", "\\\\:")
 
+        ffmpeg_cmd = ["ffmpeg", "-i", str(input_file), "-map", "0:0", "-map", "0:1", "-pix_fmt", "yuv420p", "-crf", "23", "-vf", f"subtitles={forward_slash_temp_path}", "-c:a", "ac3", str(output_file)]
+        
         if args.use_gpu:
             ffmpeg_cmd.extend(["-c:v", "h264_nvenc", "-preset", "p7", "-tune", "hq"])
         else:
