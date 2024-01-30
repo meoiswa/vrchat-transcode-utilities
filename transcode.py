@@ -1,5 +1,4 @@
 import argparse
-import os
 import shutil
 import subprocess
 import sys
@@ -20,7 +19,7 @@ def map_font_size(size: int) -> int:
     """Map the font size using cubic function."""
     return int(A * size**3 + B * size**2 + C * size + D)
 
-def process_subtitles(subtitle_file: Path) -> None:
+def process_subtitles(subtitle_file: Path, forced_size) -> None:
     """Process subtitle file to map font sizes."""
     with subtitle_file.open("r", encoding="utf8") as file:
         lines = file.readlines()
@@ -29,7 +28,11 @@ def process_subtitles(subtitle_file: Path) -> None:
         for line in lines:
             if 'face' in line:
                 size = int(line.split('size="')[1].split('"')[0])
-                new_size = map_font_size(size)
+                if forced_size is not None:
+                    new_size = forced_size
+                else:
+                    new_size = map_font_size(size)
+                
                 line = line.replace(f'size="{size}"', f'size="{new_size}"')
             file.write(line)
 
@@ -48,6 +51,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("-t", "--subtitle_track", type=int, help="Subtitle track number")
     parser.add_argument("-s", "--subtitle_file", help="Subtitle file")
     parser.add_argument("-d", "--dump_subtitles", action="store_true", help="Dump subtitle tracks and exit")
+    parser.add_argument("-f", "--font_size", type=int, help="Force a font size rather than using quick maffs", default=None)
     return parser.parse_args()
 
 def main():
@@ -85,7 +89,7 @@ def main():
             sys.exit(1)
 
         print("Processing subtitle font sizes...")
-        process_subtitles(temp_subtitle_file)
+        process_subtitles(temp_subtitle_file, args.font_size)
 
         output_file = input_file.with_name(f"{input_file.stem}_processed.mp4")
 
