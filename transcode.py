@@ -50,6 +50,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("-g", "--use_gpu", action="store_true", help="Use GPU for transcoding")
     parser.add_argument("-t", "--subtitle_track", type=int, help="Subtitle track number")
     parser.add_argument("-s", "--subtitle_file", help="Subtitle file")
+    parser.add_argument("-a", "--audio_track", type=int, help="Audio track number to transcode")
     parser.add_argument("-d", "--dump_subtitles", action="store_true", help="Dump subtitle tracks and exit")
     parser.add_argument("-f", "--font_size", type=int, help="Force a font size rather than using quick maffs", default=None)
     return parser.parse_args()
@@ -95,7 +96,12 @@ def main():
 
         forward_slash_temp_path = str(temp_subtitle_file).replace("\\", "/").replace(":", "\\\\:")
 
-        ffmpeg_cmd = ["ffmpeg", "-i", str(input_file), "-map", "0:0", "-map", "0:1", "-pix_fmt", "yuv420p", "-crf", "23", "-vf", f"subtitles={forward_slash_temp_path}", "-c:a", "ac3", str(output_file)]
+        ffmpeg_cmd = ["ffmpeg", "-i", str(input_file)]
+
+        if args.audio_track is not None:
+            ffmpeg_cmd.extend(["-map", f"0:a:{args.audio_track}"])
+
+        ffmpeg_cmd.extend(["-map", "0:0", "-pix_fmt", "yuv420p", "-crf", "23", "-vf", f"subtitles={forward_slash_temp_path}", "-c:a", "ac3", str(output_file)])
 
         if args.use_gpu:
             ffmpeg_cmd.extend(["-c:v", "h264_nvenc", "-preset", "p7", "-tune", "hq"])
@@ -110,7 +116,6 @@ def main():
         except KeyboardInterrupt:
             print("Aborting...")
             process.kill()
-
 
     finally:
         if args.subtitle_track is not None and temp_subtitle_file.is_file():
