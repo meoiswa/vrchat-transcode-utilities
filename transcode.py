@@ -152,6 +152,8 @@ def main():
             [
                 "-map",
                 "0:0",
+                "-movflags",
+                "+faststart",
                 "-pix_fmt",
                 "yuv420p",
                 "-crf",
